@@ -1,0 +1,65 @@
+[
+  {
+    "id": "mlp",
+    "name": "Marketing Launchpad - Digital Marketing Course",
+    "path": "/marketing-launchpad/digital-marketing-course/",
+    "programSlug": "mlp",
+    "expectedFormPageType": "MLP",
+    "lead": {
+      "name": "Pixel Test MLP",
+      "email": "pomeh16795@findize.com",
+      "phone": "8929310022",
+      "retiredPhones": [
+        "8929317940"
+      ]
+    }
+  },
+  {
+    "id": "mlp-part-time",
+    "name": "Marketing Launchpad - Part-Time Digital Marketing Course",
+    "path": "/marketing-launchpad/part-time-digital-marketing-course/",
+    "programSlug": "mlp_part",
+    "expectedFormPageType": "PTDMM",
+    "lead": {
+      "name": "Pixel Test Part Time",
+      "email": "mexob94363@findize.com",
+      "phone": "9929317941"
+    }
+  },
+  {
+    "id": "mlp-hindi",
+    "name": "Marketing Launchpad - Digital Marketing Course in Hindi",
+    "path": "/marketing-launchpad/digital-marketing-course-in-hindi/",
+    "programSlug": "mlp",
+    "expectedFormPageType": "MLP",
+    "lead": {
+      "name": "Pixel Test Hindi",
+      "email": "gigocit625@hideam.com",
+      "phone": "7729317999"
+    }
+  },
+  {
+    "id": "basl",
+    "name": "PGP - Learn Sales & Marketing (BASL)",
+    "path": "/pgp/learn-sales-and-marketing/",
+    "programSlug": "basl",
+    "expectedFormPageType": "BASL",
+    "lead": {
+      "name": "Pixel Test BASL",
+      "email": "kileye3962@findize.com",
+      "phone": "7887317943"
+    }
+  },
+  {
+    "id": "alm",
+    "name": "PGP in Marketing (ALM)",
+    "path": "/pgp-in-marketing/",
+    "programSlug": "alm",
+    "expectedFormPageType": "ALM",
+    "lead": {
+      "name": "Pixel Test ALM",
+      "email": "sogesov146@findize.com",
+      "phone": "5789317949"
+    }
+  }
+]

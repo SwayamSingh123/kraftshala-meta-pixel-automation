@@ -1,0 +1,15 @@
+{
+  "name": "kraftshala-meta-pixel-automation",
+  "version": "1.0.0",
+  "description": "Cypress automation that captures Meta Pixel events across Kraftshala course pages and generates an HTML report.",
+  "scripts": {
+    "test": "cypress run --env platform=test",
+    "test:main": "cypress run --env platform=main",
+    "open": "cypress open --env platform=test",
+    "open:main": "cypress open --env platform=main",
+    "build:index": "node reporter/buildIndex.js"
+  },
+  "devDependencies": {
+    "cypress": "^13.15.0"
+  }
+}

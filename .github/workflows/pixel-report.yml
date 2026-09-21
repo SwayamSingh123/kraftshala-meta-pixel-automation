@@ -1,0 +1,176 @@
+name: Meta Pixel Report
+
+on:
+  # Click-to-run from the Actions tab.
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: Platform to run against
+        type: choice
+        options: [test, main]
+        default: test
+      pages:
+        description: Page ids, comma separated (blank = all)
+        required: false
+        default: ''
+
+  # HTTP trigger: POST to /dispatches with event_type pixel-test or pixel-main.
+  repository_dispatch:
+    types: [pixel-test, pixel-main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pixel-report
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Resolve platform and page filter
+        id: cfg
+        env:
+          # Kept in env rather than inlined, so dispatch payloads cannot inject shell.
+          EVENT: ${{ github.event_name }}
+          ACTION: ${{ github.event.action }}
+          INPUT_PLATFORM: ${{ inputs.platform }}
+          INPUT_PAGES: ${{ inputs.pages }}
+          PAYLOAD_PAGES: ${{ github.event.client_payload.pages }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT" = "repository_dispatch" ]; then
+            case "$ACTION" in
+              pixel-main) PLATFORM=main ;;
+              *)          PLATFORM=test ;;
+            esac
+            PAGES="${PAYLOAD_PAGES:-}"
+          else
+            PLATFORM="${INPUT_PLATFORM:-test}"
+            PAGES="${INPUT_PAGES:-}"
+          fi
+          # Cypress splits --env on commas, so join several ids with "+".
+          PAGES="$(printf '%s' "$PAGES" | tr -d '[:space:]' | tr ',' '+')"
+          # Reject anything that is not a plain page-id list.
+          case "$PAGES" in
+            *[!a-zA-Z0-9_+-]*) echo "Invalid pages filter: $PAGES" >&2; exit 1 ;;
+          esac
+          echo "platform=$PLATFORM" >> "$GITHUB_OUTPUT"
+          echo "pages=$PAGES" >> "$GITHUB_OUTPUT"
+          echo "Platform: $PLATFORM   Pages: ${PAGES:-all}"
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Run the pixel automation
+        uses: cypress-io/github-action@v6
+        with:
+          command: >-
+            npx cypress run
+            --browser electron
+            --env platform=${{ steps.cfg.outputs.platform }}${{ steps.cfg.outputs.pages && format(',pages={0}', steps.cfg.outputs.pages) || '' }}
+
+      - name: Collect the report
+        if: always()
+        id: report
+        env:
+          PLATFORM: ${{ steps.cfg.outputs.platform }}
+        run: |
+          set -euo pipefail
+          REPORT="cypress/reports/meta-pixel-report-${PLATFORM}.html"
+          if [ ! -f "$REPORT" ]; then
+            echo "No report was produced." >&2
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "found=true" >> "$GITHUB_OUTPUT"
+
+          RAW="cypress/reports/meta-pixel-raw-${PLATFORM}.json"
+          node -e '
+            const fs = require("fs");
+            const raw = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+            const results = raw.results || [];
+            const meta = {
+              platform: process.argv[2],
+              programmes: results.length,
+              leadsCreated: results.filter((p) => p.leadCreated).length,
+              pixelEvents: results.reduce((n, p) => n + p.beacons.length, 0),
+              generatedAt: new Date(raw.generatedAt).toUTCString()
+            };
+            fs.writeFileSync("report-meta.json", JSON.stringify(meta, null, 2));
+            console.log(meta);
+          ' "$RAW" "$PLATFORM"
+
+      - name: Upload report as an artifact
+        if: always() && steps.report.outputs.found == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: pixel-report-${{ steps.cfg.outputs.platform }}
+          path: |
+            cypress/reports/meta-pixel-report-${{ steps.cfg.outputs.platform }}.html
+            cypress/reports/meta-pixel-raw-${{ steps.cfg.outputs.platform }}.json
+            cypress/screenshots
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Publish report to GitHub Pages
+        if: always() && steps.report.outputs.found == 'true'
+        env:
+          PLATFORM: ${{ steps.cfg.outputs.platform }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          REMOTE="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+
+          # Reuse the existing site so the other platform's report survives.
+          if git clone --branch gh-pages --single-branch --depth 1 "$REMOTE" site 2>/dev/null; then
+            echo "Updating existing gh-pages"
+          else
+            echo "Creating gh-pages"
+            mkdir site
+            git -C site init -q -b gh-pages
+            git -C site remote add origin "$REMOTE"
+          fi
+
+          mkdir -p "site/${PLATFORM}"
+          cp "cypress/reports/meta-pixel-report-${PLATFORM}.html" "site/${PLATFORM}/index.html"
+          cp report-meta.json "site/${PLATFORM}/meta.json"
+          touch site/.nojekyll
+          node reporter/buildIndex.js site
+
+          cd site
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Pixel report: ${PLATFORM} ($(date -u +%Y-%m-%dT%H:%M:%SZ))" || {
+            echo "Nothing changed"; exit 0;
+          }
+          git push -q origin gh-pages
+
+      - name: Summary
+        if: always()
+        env:
+          PLATFORM: ${{ steps.cfg.outputs.platform }}
+        run: |
+          {
+            echo "## Meta Pixel Report - ${PLATFORM}"
+            if [ -f report-meta.json ]; then
+              node -e '
+                const m = require("./report-meta.json");
+                console.log(`- **${m.leadsCreated} / ${m.programmes}** leads created`);
+                console.log(`- **${m.pixelEvents}** pixel events captured`);
+                console.log(`- Run at ${m.generatedAt}`);
+              '
+            else
+              echo "- No report was produced - check the run log."
+            fi
+            echo ""
+            echo "Report: https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}/${PLATFORM}/"
+          } >> "$GITHUB_STEP_SUMMARY"
