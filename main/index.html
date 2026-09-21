@@ -1,0 +1,594 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meta Pixel Report - Kraftshala (Main platform (live))</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Kraftshala brand: gold #f1ae13, navy #243e60 */
+  --gold:#f1ae13; --gold-dark:#d1950a; --gold-soft:#fdf4e0;
+  --navy:#243e60; --navy-deep:#1b2f4a;
+  --ink:#303030; --body:#505050; --muted:#7e7e7e;
+  --line:#e5e5e5; --line-soft:#f1f1f1; --bg:#f8f8f8;
+  --ok:#157a4f; --ok-soft:#eaf6f0;
+  --bad:#c0392b; --bad-soft:#fdecea;
+  --font:"Plus Jakarta Sans","Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,Helvetica,Arial,sans-serif;
+  --mono:ui-monospace,"Cascadia Mono",Consolas,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--body);font-family:var(--font);
+  line-height:1.55;-webkit-font-smoothing:antialiased}
+
+/* ---------------- header ---------------- */
+header{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-deep) 100%);
+  color:#fff;padding:36px 24px 30px;position:relative;overflow:hidden}
+header:after{content:"";position:absolute;right:-70px;top:-70px;width:240px;height:240px;
+  border-radius:50%;background:var(--gold);opacity:.13}
+.wrap{max-width:880px;margin:0 auto;position:relative}
+.brandline{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.brandmark{display:inline-flex;align-items:center;gap:8px;font-weight:800;font-size:13px;
+  letter-spacing:.02em;color:#fff}
+.brandmark i{width:10px;height:10px;border-radius:2px;background:var(--gold);
+  transform:rotate(45deg);display:inline-block}
+.env{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+  padding:4px 11px;border-radius:999px}
+.env.testenv{background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.3)}
+.env.live{background:var(--gold);color:#3d2c00}
+header h1{margin:16px 0 6px;font-size:29px;font-weight:800;letter-spacing:-.5px;color:#fff}
+header p{margin:0;color:#b9c4d4;font-size:13px}
+header p b{color:#fff;font-weight:600}
+.stats{display:flex;gap:40px;margin-top:26px;flex-wrap:wrap}
+.stats b{display:block;font-size:27px;font-weight:800;line-height:1.15;color:#fff}
+.stats span{color:#b9c4d4;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em}
+.stats .hl b{color:var(--gold)}
+
+main{max-width:880px;margin:0 auto;padding:26px 24px}
+
+/* ---------------- cards ---------------- */
+.card,.prog{background:#fff;border:1px solid var(--line);border-radius:14px;
+  box-shadow:0 1px 3px rgba(36,62,96,.05);margin-bottom:20px}
+.card{padding:22px 24px}
+.prog{padding:22px 24px 24px;scroll-margin-top:16px;border-top:3px solid var(--gold)}
+.card h2{margin:0 0 15px;font-size:14px;font-weight:800;color:var(--ink);
+  text-transform:uppercase;letter-spacing:.07em}
+.prog h2{margin:0 0 4px;font-size:19px;font-weight:800;color:var(--ink);letter-spacing:-.2px}
+.path{color:var(--muted);font-size:12px;margin-bottom:16px;font-family:var(--mono);word-break:break-all}
+
+.result{display:flex;align-items:center;gap:10px;padding:12px 15px;border-radius:10px;
+  font-size:15px;font-weight:700}
+.result span{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;
+  color:#fff;font-size:12px;flex:none}
+.result.ok{background:var(--ok-soft);color:#0f5f3d}
+.result.ok span{background:var(--ok)}
+.result.bad{background:var(--bad-soft);color:#932a1e}
+.result.bad span{background:var(--bad)}
+.fresh{color:var(--muted);font-size:12px;margin:9px 0 18px}
+
+/* ---------------- tables ---------------- */
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{text-align:left;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;
+  color:var(--muted);padding:0 14px 9px;border-bottom:2px solid var(--line)}
+th:last-child,td:last-child{width:195px}
+td{padding:12px 14px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+tbody tr:last-child td{border-bottom:none}
+
+.step-row td{background:var(--navy);color:#fff;font-weight:700;font-size:13px;padding:10px 14px}
+.num{display:inline-grid;place-items:center;width:21px;height:21px;border-radius:50%;
+  background:var(--gold);color:#3d2c00;font-size:11px;font-weight:800;margin-right:10px}
+
+.event{font-family:var(--mono);font-weight:700;font-size:13px;color:var(--ink)}
+.meaning{color:var(--muted);font-size:12px;margin-top:3px}
+.ids{font-family:var(--mono);font-size:12.5px;color:var(--ink)}
+.ids div{padding:1px 0}
+.x{color:var(--muted)}
+.none{color:var(--muted);font-style:italic;font-size:12.5px}
+
+tr.conv td{background:var(--ok-soft)}
+tr.conv .event{color:#0f5f3d}
+tr.conv .meaning{color:#3f7a62}
+.tag{margin-left:9px;font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+  background:var(--ok);color:#fff;border-radius:999px;padding:3px 8px;vertical-align:1.5px}
+
+.mid{text-align:center}
+.card a{color:var(--ink);font-weight:600;text-decoration:none;border-bottom:1.5px solid var(--gold)}
+.card a:hover{color:var(--navy)}
+.pill{display:inline-block;font-size:11px;font-weight:700;border-radius:999px;
+  padding:4px 11px;white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:#0f5f3d}
+.pill.bad{background:var(--bad-soft);color:#932a1e}
+
+footer{max-width:880px;margin:0 auto;padding:4px 24px 44px;color:var(--muted);font-size:12px}
+
+@media (max-width:620px){
+  header{padding:26px 16px 24px}
+  header h1{font-size:23px}
+  .stats{gap:24px}
+  th:last-child,td:last-child{width:auto}
+  main,footer{padding-left:14px;padding-right:14px}
+  .prog,.card{padding:18px 15px 20px}
+}
+@media print{body{background:#fff}.prog,.card{break-inside:avoid;box-shadow:none}}
+</style></head>
+<body>
+
+<header><div class="wrap">
+  <div class="brandline">
+    <span class="brandmark"><i></i>KRAFTSHALA</span>
+    <span class="env live">Main platform (live)</span>
+  </div>
+  <h1>Meta Pixel Report</h1>
+  <p><b>www.kraftshala.com</b> &middot; 21 Sept 2026, 12:17 pm</p>
+  <div class="stats">
+    <div><b>5</b><span>Programmes</span></div>
+    <div class="hl"><b>5 / 5</b><span>Leads created</span></div>
+    <div><b>83</b><span>Pixel events</span></div>
+  </div>
+</div></header>
+
+<main>
+  <div class="card">
+    <h2>Summary</h2>
+    <table>
+      <thead><tr><th>Programme</th><th class="mid">Pixel events</th><th class="mid">Result</th></tr></thead>
+      <tbody><tr>
+        <td><a href="#prog-0">Marketing Launchpad - Digital Marketing Course</a></td>
+        <td class="mid">15</td>
+        <td class="mid"><span class="pill ok">Lead created</span></td>
+      </tr><tr>
+        <td><a href="#prog-1">Marketing Launchpad - Part-Time Digital Marketing Course</a></td>
+        <td class="mid">13</td>
+        <td class="mid"><span class="pill ok">Lead created</span></td>
+      </tr><tr>
+        <td><a href="#prog-2">Marketing Launchpad - Digital Marketing Course in Hindi</a></td>
+        <td class="mid">13</td>
+        <td class="mid"><span class="pill ok">Lead created</span></td>
+      </tr><tr>
+        <td><a href="#prog-3">PGP - Learn Sales &amp; Marketing (BASL)</a></td>
+        <td class="mid">20</td>
+        <td class="mid"><span class="pill ok">Lead created</span></td>
+      </tr><tr>
+        <td><a href="#prog-4">PGP in Marketing (ALM)</a></td>
+        <td class="mid">22</td>
+        <td class="mid"><span class="pill ok">Lead created</span></td>
+      </tr></tbody>
+    </table>
+  </div>
+
+  <section class="prog" id="prog-0">
+    <h2>1. Marketing Launchpad - Digital Marketing Course</h2>
+    <div class="path">/marketing-launchpad/digital-marketing-course/</div>
+    <div class="result ok"><span>&#10003;</span> Lead created for this programme</div>
+    <div class="fresh">Previous test lead deleted before this run</div>
+    <table>
+      <thead><tr><th>Pixel event</th><th>Fired by pixel ID</th></tr></thead>
+      <tbody><tr class="step-row">
+        <td colspan="2"><span class="num">1</span>Landing page opened</td>
+      </tr><tr class="">
+              <td>
+                <span class="event">PageView</span>
+                
+                <div class="meaning">Visitor opened the page</div>
+              </td>
+              <td class="ids"><div>254822124949497</div><div>848180154775619</div></td>
+            </tr><tr class="step-row">
+        <td colspan="2"><span class="num">2</span>Lead form filled</td>
+      </tr><tr><td class="none" colspan="2">No pixel fired here</td></tr><tr class="step-row">
+        <td colspan="2"><span class="num">3</span>Details submitted</td>
+      </tr><tr class="">
+              <td>
+                <span class="event">SubscribedButtonClick</span>
+                
+                <div class="meaning">Button click tracked automatically by Meta</div>
+              </td>
+              <td class="ids"><div>254822124949497</div><div>848180154775619</div></td>
+            </tr><tr class="">
+              <td>
+                <span class="event">step1_submit</span>
+                
+                <div class="meaning">Visitor submitted their contact details</div>
+              </td>
+              <td class="ids"><div>848180154775619</div></td>
+            </tr><tr class="step-row">
+        <td colspan="2"><span class="num">4</span>OTP screen shown</td>
+      </tr><tr><td class="none" colspan="2">No pixel fired here</td></tr><tr class="step-row">
+        <td colspan="2"><span class="num">5</span>OTP verified</td>
+      </tr><tr class="">
+              <td>
+                <span class="event">SubscribedButtonClick</span>
+                
+                <div class="meaning">Button click tracked automatically by Meta</div>
+              </td>
+              <td class="ids"><div>254822124949497</div><div>848180154775619</div></td>
+            </tr><tr class="">
+              <td>
+                <span class="event">step2_submit</span>
+                
+                <div class="meaning">Visitor submitted the OTP for verification</div>
+              </td>
+              <td class="ids"><div>848180154775619</div></td>
+            </tr><tr class="conv">
+              <td>
+                <span class="event">Lead</span>
+                <span class="tag">Conversion</span>
+                <div class="meaning">Standard Meta conversion - a lead was captured</div>
+              </td>
+              <td class="ids"><div>254822124949497</div></td>
+            </tr><tr class="conv">
+              <td>
+                <span class="event">FormSubmitMLP</span>
+                <span class="tag">Conversion</span>
+                <div class="meaning">Conversion - lead captured for this programme</div>
+              </td>
+              <td class="ids"><div>254822124949497</div></td>
+            </tr><tr class="conv">
+              <td>
+                <span class="event">lead_mlp</span>
+                <span class="tag">Conversion</span>
+                <div class="meaning">Conversion - lead captured for this programme</div>
+              </td>
+              <td class="ids"><div>848180154775619</div></td>
+            </tr><tr class="step-row">
+        <td colspan="2"><span class="num">6</span>Lead created</td>
+      </tr><tr class="">
+              <td>
+                <span class="event">PageView</span>
+                
+                <div class="meaning">Visitor opened the page</div>
+              </td>
+              <td class="ids"><div>254822124949497 <span class="x">&times;2</span></div><div>848180154775619 <span class="x">&times;2</span></div></td>
+            </tr></tbody>
+    </table>
+  </section><section class="prog" id="prog-1">
+    <h2>2. Marketing Launchpad - Part-Time Digital Marketing Course</h2>
+    <div class="path">/marketing-launchpad/part-time-digital-marketing-course/</div>
+    <div class="result ok"><span>&#10003;</span> Lead created for this programme</div>
+    <div class="fresh">Previous test lead deleted before this run</div>
+    <table>
+      <thead><tr><th>Pixel event</th><th>Fired by pixel ID</th></tr></thead>
+      <tbody><tr class="step-row">
+        <td colspan="2"><span class="num">1</span>Landing page opened</td>
+      </tr><tr class="">
+              <td>
+                <span class="event">PageView</span>
+                
+                <div class="meaning">Visitor opened the page</div>
+              </td>
+              <td class="ids"><div>254822124949497</div><div>848180154775619</div></td>
+            </tr><tr class="step-row">
+        <td colspan="2"><span class="num">2</span>Lead form filled</td>
+      </tr><tr><td class="none" colspan="2">No pixel fired here</td></tr><tr class="step-row">
+        <td colspan="2"><span class="num">3</span>Details submitted</td>
+      </tr><tr class="">
+              <td>
+                <span class="event">SubscribedButtonClick</span>
+                
+                <div class="meaning">Button click tracked automatically by Meta</div>
+              </td>
+              <td class="ids"><div>254822124949497</div><div>848180154775619</div></td>
+            </tr><tr class="">
+              <td>
+                <span class="event">step1_submit</span>
+                
+                <div class="meaning">Visitor submitted their contact details</div>
+              </td>
+              <td class="ids"><div>848180154775619</div></td>
+            </tr><tr class="step-row">
+        <td colspan="2"><span class="num">4</span>OTP screen shown</td>
+      </tr><tr><td class="none" colspan="2">No pixel fired here</td></tr><tr class="step-row">
+        <td colspan="2"><span class="num">5</span>OTP verified</td>
+      </tr><tr class="">
+              <td>
+                <span class="event">SubscribedButtonClick</span>
+                
+                <div class="meaning">Button click tracked automatically by Meta</div>
+              </td>
+              <td class="ids"><div>254822124949497</div><div>848180154775619</div></td>
+            </tr><tr class="">
+              <td>
+                <span class="event">step2_submit</span>
+                
+                <div class="meaning">Visitor submitted the OTP for verification</div>
+              </td>
+              <td class="ids"><div>848180154775619</div></td>
+            </tr><tr class="conv">
+              <td>
+                <span class="event">Lead</span>
+                <span class="tag">Conversion</span>
+                <div class="meaning">Standard Meta conversion - a lead was captured</div>
+              </td>
+              <td class="ids"><div>254822124949497</div></td>
+            </tr><tr class="conv">
+              <td>
+                <span class="event">FormSubmitMLP</span>
+                <span class="tag">Conversion</span>
+                <div class="meaning">Conversion - lead captured for this programme</div>
+              </td>
+              <td class="ids"><div>254822124949497</div></td>
+            </tr><tr class="conv">
+              <td>
+                <span class="event">lead_mlp</span>
+                <span class="tag">Conversion</span>
+                <div class="meaning">Conversion - lead captured for this programme</div>
+              </td>
+              <td class="ids"><div>848180154775619</div></td>
+            </tr><tr class="">
+              <td>
+                <span class="event">PageView</span>
+                
+                <div class="meaning">Visitor opened the page</div>
+              </td>
+              <td class="ids"><div>254822124949497</div><div>848180154775619</div></td>
+            </tr><tr class="step-row">
+        <td colspan="2"><span class="num">6</span>Lead created</td>
+      </tr><tr><td class="none" colspan="2">No pixel fired here</td></tr></tbody>
+    </table>
+  </section><section class="prog" id="prog-2">
+    <h2>3. Marketing Launchpad - Digital Marketing Course in Hindi</h2>
+    <div class="path">/marketing-launchpad/digital-marketing-course-in-hindi/</div>
+    <div class="result ok"><span>&#10003;</span> Lead created for this programme</div>
+    <div class="fresh">Previous test lead deleted before this run</div>
+    <table>
+      <thead><tr><th>Pixel event</th><th>Fired by pixel ID</th></tr></thead>
+      <tbody><tr class="step-row">
+        <td colspan="2"><span class="num">1</span>Landing page opened</td>
+      </tr><tr class="">
+              <td>
+                <span class="event">PageView</span>
+                
+                <div class="meaning">Visitor opened the page</div>
+              </td>
+              <td class="ids"><div>254822124949497</div><div>848180154775619</div></td>
+            </tr><tr class="step-row">
+        <td colspan="2"><span class="num">2</span>Lead form filled</td>
+      </tr><tr><td class="none" colspan="2">No pixel fired here</td></tr><tr class="step-row">
+        <td colspan="2"><span class="num">3</span>Details submitted</td>
+      </tr><tr class="">
+              <td>
+                <span class="event">SubscribedButtonClick</span>
+                
+                <div class="meaning">Button click tracked automatically by Meta</div>
+              </td>
+              <td class="ids"><div>254822124949497</div><div>848180154775619</div></td>
+            </tr><tr class="">
+              <td>
+                <span class="event">step1_submit</span>
+                
+                <div class="meaning">Visitor submitted their contact details</div>
+              </td>
+              <td class="ids"><div>848180154775619</div></td>
+            </tr><tr class="step-row">
+        <td colspan="2"><span class="num">4</span>OTP screen shown</td>
+      </tr><tr><td class="none" colspan="2">No pixel fired here</td></tr><tr class="step-row">
+        <td colspan="2"><span class="num">5</span>OTP verified</td>
+      </tr><tr class="">
+              <td>
+                <span class="event">SubscribedButtonClick</span>
+                
+                <div class="meaning">Button click tracked automatically by Meta</div>
+              </td>
+              <td class="ids"><div>254822124949497</div><div>848180154775619</div></td>
+            </tr><tr class="">
+              <td>
+                <span class="event">step2_submit</span>
+                
+                <div class="meaning">Visitor submitted the OTP for verification</div>
+              </td>
+              <td class="ids"><div>848180154775619</div></td>
+            </tr><tr class="conv">
+              <td>
+                <span class="event">Lead</span>
+                <span class="tag">Conversion</span>
+                <div class="meaning">Standard Meta conversion - a lead was captured</div>
+              </td>
+              <td class="ids"><div>254822124949497</div></td>
+            </tr><tr class="conv">
+              <td>
+                <span class="event">FormSubmitMLP</span>
+                <span class="tag">Conversion</span>
+                <div class="meaning">Conversion - lead captured for this programme</div>
+              </td>
+              <td class="ids"><div>254822124949497</div></td>
+            </tr><tr class="conv">
+              <td>
+                <span class="event">lead_mlp</span>
+                <span class="tag">Conversion</span>
+                <div class="meaning">Conversion - lead captured for this programme</div>
+              </td>
+              <td class="ids"><div>848180154775619</div></td>
+            </tr><tr class="step-row">
+        <td colspan="2"><span class="num">6</span>Lead created</td>
+      </tr><tr class="">
+              <td>
+                <span class="event">PageView</span>
+                
+                <div class="meaning">Visitor opened the page</div>
+              </td>
+              <td class="ids"><div>254822124949497</div><div>848180154775619</div></td>
+            </tr></tbody>
+    </table>
+  </section><section class="prog" id="prog-3">
+    <h2>4. PGP - Learn Sales &amp; Marketing (BASL)</h2>
+    <div class="path">/pgp/learn-sales-and-marketing/</div>
+    <div class="result ok"><span>&#10003;</span> Lead created for this programme</div>
+    <div class="fresh">Previous test lead deleted before this run</div>
+    <table>
+      <thead><tr><th>Pixel event</th><th>Fired by pixel ID</th></tr></thead>
+      <tbody><tr class="step-row">
+        <td colspan="2"><span class="num">1</span>Landing page opened</td>
+      </tr><tr class="">
+              <td>
+                <span class="event">PageView</span>
+                
+                <div class="meaning">Visitor opened the page</div>
+              </td>
+              <td class="ids"><div>254822124949497</div><div>848180154775619</div><div>1201119248242338</div></td>
+            </tr><tr class="step-row">
+        <td colspan="2"><span class="num">2</span>Lead form filled</td>
+      </tr><tr><td class="none" colspan="2">No pixel fired here</td></tr><tr class="step-row">
+        <td colspan="2"><span class="num">3</span>Details submitted</td>
+      </tr><tr class="">
+              <td>
+                <span class="event">SubscribedButtonClick</span>
+                
+                <div class="meaning">Button click tracked automatically by Meta</div>
+              </td>
+              <td class="ids"><div>254822124949497</div><div>848180154775619</div><div>1201119248242338</div></td>
+            </tr><tr class="">
+              <td>
+                <span class="event">step1_submit</span>
+                
+                <div class="meaning">Visitor submitted their contact details</div>
+              </td>
+              <td class="ids"><div>848180154775619</div><div>1201119248242338</div></td>
+            </tr><tr class="step-row">
+        <td colspan="2"><span class="num">4</span>OTP screen shown</td>
+      </tr><tr><td class="none" colspan="2">No pixel fired here</td></tr><tr class="step-row">
+        <td colspan="2"><span class="num">5</span>OTP verified</td>
+      </tr><tr class="">
+              <td>
+                <span class="event">SubscribedButtonClick</span>
+                
+                <div class="meaning">Button click tracked automatically by Meta</div>
+              </td>
+              <td class="ids"><div>254822124949497</div><div>848180154775619</div><div>1201119248242338</div></td>
+            </tr><tr class="conv">
+              <td>
+                <span class="event">Lead</span>
+                <span class="tag">Conversion</span>
+                <div class="meaning">Standard Meta conversion - a lead was captured</div>
+              </td>
+              <td class="ids"><div>254822124949497</div></td>
+            </tr><tr class="">
+              <td>
+                <span class="event">step2_submit</span>
+                
+                <div class="meaning">Visitor submitted the OTP for verification</div>
+              </td>
+              <td class="ids"><div>848180154775619</div><div>1201119248242338</div></td>
+            </tr><tr class="conv">
+              <td>
+                <span class="event">FormSubmitBASL</span>
+                <span class="tag">Conversion</span>
+                <div class="meaning">Conversion - lead captured for this programme</div>
+              </td>
+              <td class="ids"><div>254822124949497</div></td>
+            </tr><tr class="conv">
+              <td>
+                <span class="event">lead_smbl</span>
+                <span class="tag">Conversion</span>
+                <div class="meaning">Conversion - lead captured for this programme</div>
+              </td>
+              <td class="ids"><div>848180154775619</div><div>1201119248242338</div></td>
+            </tr><tr class="step-row">
+        <td colspan="2"><span class="num">6</span>Lead created</td>
+      </tr><tr class="">
+              <td>
+                <span class="event">PageView</span>
+                
+                <div class="meaning">Visitor opened the page</div>
+              </td>
+              <td class="ids"><div>254822124949497</div><div>848180154775619</div><div>1201119248242338</div></td>
+            </tr></tbody>
+    </table>
+  </section><section class="prog" id="prog-4">
+    <h2>5. PGP in Marketing (ALM)</h2>
+    <div class="path">/pgp-in-marketing/</div>
+    <div class="result ok"><span>&#10003;</span> Lead created for this programme</div>
+    <div class="fresh">No previous test lead to delete</div>
+    <table>
+      <thead><tr><th>Pixel event</th><th>Fired by pixel ID</th></tr></thead>
+      <tbody><tr class="step-row">
+        <td colspan="2"><span class="num">1</span>Landing page opened</td>
+      </tr><tr class="">
+              <td>
+                <span class="event">PageView</span>
+                
+                <div class="meaning">Visitor opened the page</div>
+              </td>
+              <td class="ids"><div>254822124949497</div><div>848180154775619</div><div>1029893749902940</div></td>
+            </tr><tr class="step-row">
+        <td colspan="2"><span class="num">2</span>Lead form filled</td>
+      </tr><tr><td class="none" colspan="2">No pixel fired here</td></tr><tr class="step-row">
+        <td colspan="2"><span class="num">3</span>Details submitted</td>
+      </tr><tr class="">
+              <td>
+                <span class="event">SubscribedButtonClick</span>
+                
+                <div class="meaning">Button click tracked automatically by Meta</div>
+              </td>
+              <td class="ids"><div>254822124949497</div><div>848180154775619</div><div>1029893749902940</div></td>
+            </tr><tr class="">
+              <td>
+                <span class="event">step1_submit</span>
+                
+                <div class="meaning">Visitor submitted their contact details</div>
+              </td>
+              <td class="ids"><div>848180154775619</div></td>
+            </tr><tr class="step-row">
+        <td colspan="2"><span class="num">4</span>OTP screen shown</td>
+      </tr><tr><td class="none" colspan="2">No pixel fired here</td></tr><tr class="step-row">
+        <td colspan="2"><span class="num">5</span>OTP verified</td>
+      </tr><tr class="">
+              <td>
+                <span class="event">SubscribedButtonClick</span>
+                
+                <div class="meaning">Button click tracked automatically by Meta</div>
+              </td>
+              <td class="ids"><div>254822124949497</div><div>848180154775619</div><div>1029893749902940</div></td>
+            </tr><tr class="conv">
+              <td>
+                <span class="event">Lead</span>
+                <span class="tag">Conversion</span>
+                <div class="meaning">Standard Meta conversion - a lead was captured</div>
+              </td>
+              <td class="ids"><div>254822124949497</div><div>1029893749902940</div></td>
+            </tr><tr class="">
+              <td>
+                <span class="event">step2_submit</span>
+                
+                <div class="meaning">Visitor submitted the OTP for verification</div>
+              </td>
+              <td class="ids"><div>848180154775619</div></td>
+            </tr><tr class="conv">
+              <td>
+                <span class="event">FormSubmitALM</span>
+                <span class="tag">Conversion</span>
+                <div class="meaning">Conversion - lead captured for this programme</div>
+              </td>
+              <td class="ids"><div>254822124949497</div></td>
+            </tr><tr class="conv">
+              <td>
+                <span class="event">lead_alm</span>
+                <span class="tag">Conversion</span>
+                <div class="meaning">Conversion - lead captured for this programme</div>
+              </td>
+              <td class="ids"><div>848180154775619</div></td>
+            </tr><tr class="conv">
+              <td>
+                <span class="event">ALMFormSubmit</span>
+                <span class="tag">Conversion</span>
+                <div class="meaning">Conversion - lead captured for this programme</div>
+              </td>
+              <td class="ids"><div>1029893749902940</div></td>
+            </tr><tr class="step-row">
+        <td colspan="2"><span class="num">6</span>Lead created</td>
+      </tr><tr class="">
+              <td>
+                <span class="event">PageView</span>
+                
+                <div class="meaning">Visitor opened the page</div>
+              </td>
+              <td class="ids"><div>254822124949497 <span class="x">&times;2</span></div><div>848180154775619 <span class="x">&times;2</span></div><div>1029893749902940 <span class="x">&times;2</span></div></td>
+            </tr></tbody>
+    </table>
+  </section>
+</main>
+
+<footer>Each programme was filled in and submitted end to end on
+Main platform (live). The previous test lead is deleted before every run,
+so each result comes from a fresh submission.</footer>
+
+</body></html>
